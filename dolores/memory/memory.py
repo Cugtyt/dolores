@@ -19,7 +19,7 @@ class Memory:
 
     def __init__(self) -> None:
         """Initialize the Memory with an empty history."""
-        self._history: dict[int, list[ChatMessage]] = {}
+        self.conversation: dict[int, list[ChatMessage]] = {}
 
     def add_message(
         self,
@@ -36,11 +36,14 @@ class Memory:
 
         """
         timestamp = datetime.now(UTC).isoformat()
-        if chat_id not in self._history:
-            self._history[chat_id] = []
-        self._history[chat_id].append(
+        if chat_id not in self.conversation:
+            self.conversation[chat_id] = []
+        self.conversation[chat_id].append(
             ChatMessage(text=text, timestamp=timestamp, role=role),
         )
+
+        if len(self.conversation[chat_id]) > 50:
+            self.conversation[chat_id] = self.conversation[chat_id][-50:]
 
     def get_messages(self, chat_id: int) -> list[ChatMessage]:
         """Retrieve all messages for a given chat_id.
@@ -52,4 +55,4 @@ class Memory:
             A list of messages, or an empty list if no messages exist for the chat_id.
 
         """
-        return self._history.get(chat_id, [])
+        return self.conversation.get(chat_id, [])
