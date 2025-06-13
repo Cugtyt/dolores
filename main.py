@@ -3,6 +3,7 @@
 import logging
 import os
 
+from dotenv import load_dotenv
 from telegram import Update
 from telegram.ext import (
     ApplicationBuilder,
@@ -13,6 +14,8 @@ from telegram.ext import (
 
 from dolores.memory.memory import Memory
 from dolores.roles.chatter import Chatter
+
+load_dotenv()
 
 logging.basicConfig(
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
@@ -55,9 +58,7 @@ async def handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 
 if __name__ == "__main__":
     application = (
-        ApplicationBuilder()
-        .token(os.getenv("TELEGRAM_BOT_TOKEN", ""))
-        .build()
+        ApplicationBuilder().token(os.getenv("TELEGRAM_BOT_TOKEN", "")).build()
     )
     echo_handler = MessageHandler(filters.TEXT & (~filters.COMMAND), handler)
 
