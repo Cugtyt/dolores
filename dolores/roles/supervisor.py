@@ -15,6 +15,7 @@ class SupervisorSchema(BaseModel):
     is_friendly: bool
     is_human_like: bool
     is_harmful: bool
+    language_consistency: bool
 
 
 class Supervisor:
