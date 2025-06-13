@@ -14,6 +14,7 @@ from telegram.ext import (
 
 from dolores.memory.memory import Memory
 from dolores.roles.chatter import Chatter
+from dolores.roles.supervisor import Supervisor
 
 load_dotenv()
 
@@ -25,6 +26,7 @@ logger = logging.getLogger(__name__)
 
 memory = Memory()
 chatter = Chatter()
+supervisor = Supervisor()
 
 
 async def handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -48,6 +50,7 @@ async def handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 
     history = memory.get_messages(chat_id) or []
     ai_response = chatter.respond(history)
+    supervisor.evaluate(ai_response)
 
     memory.add_message(chat_id, ai_response, role="assistant")
     await context.bot.send_message(
