@@ -57,39 +57,31 @@ async def handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 
     history = memory.get_messages(chat_id) or []
 
-    ai_response = chatter.response(history)
+    ai_response = chatter.chat(history)
     passed, evaluation = supervisor.evaluate(message_text, ai_response)
     while not passed:
         logger.info(
             "Response did not pass evaluation, retrying with updated response.",
         )
-        history.append(
-            ChatMessage(
-                text=f"Evaluation failed: {evaluation}",
-                timestamp=history[-1].timestamp if history else "",
-                role="user",
-                name="Supervisor",
-            ),
-        )
-        ai_response = chatter.response(
+
+        ai_response = chatter.chat(
             [
                 *history,
                 ChatMessage(
-                    text=f"Evaluation failed: {
-                        evaluation
-                    }, please modify your response accordingly.",
+                    text=ai_response,
                     timestamp=history[-1].timestamp if history else "",
-                    role="user",
-                    name="Supervisor",
+                    role="assistant",
+                    name="Dolores",
                 ),
             ],
+            evaluation=evaluation,
         )
         passed, evaluation = supervisor.evaluate(message_text, ai_response)
 
     memory.add_message(chat_id, ai_response, role="assistant", name="Dolores")
     await context.bot.send_message(
         chat_id=update.effective_chat.id,
-        text=f"{ai_response}\n\n{evaluation}",
+        text=ai_response,
     )
 
 

@@ -1,11 +1,9 @@
 """Dolores Supervisor Role."""
 
-import logging
-
-import lmstudio as lms
+from langfuse import observe
 from lmstudio import BaseModel
 
-logger = logging.getLogger(__name__)
+from dolores.roles.model import LMStudioModel
 
 
 class SupervisorReport(BaseModel):
@@ -13,10 +11,11 @@ class SupervisorReport(BaseModel):
 
     friendly: bool
     harmful: bool
-    dolores_exposes_as_ai: bool
     user_language: str
     dolores_language: str
-    dolores_response_matching_user_message: bool
+    dolores_has_robotic_tone: bool
+    dolores_reveals_ai_identity: bool
+    dolores_response_relevant_to_user: bool
 
 
 class Supervisor:
@@ -26,11 +25,13 @@ class Supervisor:
         """Initialize the Supervisor role."""
         self.system_prompt = """You are here to supervise the messages sent by Dolores
 and fill out the report. Each should be a single word.
+Be honest and objective, don't make mistakes.
 """
         self.schema = SupervisorReport
-        self.model_name = "mistralai/magistral-small"
-        self.model = lms.llm(self.model_name)
+        self.model_name = "qwen3-30b-a3b@q8_0"
+        self.model = LMStudioModel(response_format=self.schema)
 
+    @observe()
     def evaluate(
         self,
         user_message: str,
@@ -48,45 +49,42 @@ and fill out the report. Each should be a single word.
             An instance of SupervisorResult with evaluation results.
 
         """
-        chat = lms.Chat(self.system_prompt)
-        prompt = (
+        context = (
             f"Evaluate the following conversation:\n\n"
             f"User: {user_message}\n\n"
             f"Dolores: {assistant_response}"
         )
-        chat.add_user_message(prompt)
 
-        response = self.model.respond(chat, response_format=self.schema).parsed
-        if not isinstance(response, dict):
-            msg = f"Expected response to be a dict, got {type(response)}"
-            raise TypeError(msg)
-
-        response = self.schema(**response)
-        logger.info(
-            "supervisor response: %s",
-            response,
+        response = self.model.response(
+            self.model_name,
+            self.system_prompt,
+            context,
         )
+
+        if not isinstance(response, SupervisorReport):
+            msg = f"Expected response to be a SupervisorReport, got {type(response)}"
+            raise TypeError(msg)
 
         reasons = []
         if not response.friendly:
             reasons.append("not friendly")
         if response.harmful:
             reasons.append("harmful")
-        if response.dolores_exposes_as_ai:
-            reasons.append("exposes as AI")
+        if response.dolores_has_robotic_tone:
+            reasons.append("Dolores has robotic tone")
+        if response.dolores_reveals_ai_identity:
+            reasons.append("Dolores reveals AI identity")
         if response.user_language != response.dolores_language:
             reasons.append(
                 "language mismatch, user speaks "
                 f"{response.user_language}, Dolores speaks "
                 f"{response.dolores_language}",
             )
-        if not response.dolores_response_matching_user_message:
+        if not response.dolores_response_relevant_to_user:
             reasons.append(
-                "Dolores response does not match user message",
+                "Dolores response is not relevant to user message",
             )
         passed = not reasons
         reason = ", ".join(reasons) if reasons else None
-
-        logger.info("supervisor evaluation: %s, %s", passed, reason)
 
         return (passed, reason)
