@@ -12,6 +12,7 @@ class ChatMessage:
     text: str
     timestamp: str
     role: Literal["user", "assistant"]
+    name: str
 
 
 class Memory:
@@ -26,6 +27,7 @@ class Memory:
         chat_id: int,
         text: str,
         role: Literal["user", "assistant"],
+        name: str
     ) -> None:
         """Add a message to the history for a given chat_id.
 
@@ -39,7 +41,7 @@ class Memory:
         if chat_id not in self.conversation:
             self.conversation[chat_id] = []
         self.conversation[chat_id].append(
-            ChatMessage(text=text, timestamp=timestamp, role=role),
+            ChatMessage(text=text, timestamp=timestamp, role=role, name=name)
         )
 
         if len(self.conversation[chat_id]) > 50:

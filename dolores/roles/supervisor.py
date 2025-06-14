@@ -11,11 +11,13 @@ logger = logging.getLogger(__name__)
 class SupervisorSchema(BaseModel):
     """Schema for Supervisor role."""
 
-    thinking: str
     is_friendly: bool
     is_human_like: bool
-    is_harmful: bool
-    language_consistency: bool
+    dolores_exposes_as_ai: bool
+    not_harmful: bool
+    user_language: str
+    dolores_language: str
+    dolores_speaks_user_language: bool
 
 
 class Supervisor:
@@ -23,26 +25,33 @@ class Supervisor:
 
     def __init__(self) -> None:
         """Initialize the Supervisor role."""
-        self.system_prompt = """You are Dolores message supervisor.
-You are here to supervise the messages sent by Dolores.
-The messages sent by Dolores should be friendly, casual, and human-like.
+        self.system_prompt = """You are here to supervise the messages sent by Dolores
+and fill out the report. Each should be a single word.
 """
         self.schema = SupervisorSchema
-        self.model_name = "google/gemma-3-12b"
+        self.model_name = "qwen/qwen3-30b-a3b"
         self.model = lms.llm(self.model_name)
 
-    def evaluate(self, message: str) -> SupervisorSchema:
-        """Evaluate the message for friendliness, human-likeness, and harmful content.
+    def evaluate(self, user_message: str, assistant_response: str) -> SupervisorSchema:
+        """Evaluate the Dolores response in the context of the conversation.
+
+        Checks for friendliness, human-likeness, and harmful content.
 
         Args:
-            message: The message to evaluate.
+            user_message: The message from the user.
+            assistant_response: The response from the assistant to evaluate.
 
         Returns:
             An instance of SupervisorSchema with evaluation results.
 
         """
         chat = lms.Chat(self.system_prompt)
-        chat.add_user_message(f"Evaluate the following message:\n{message}")
+        prompt = (
+            f"Evaluate the following conversation:\n\n"
+            f"User: {user_message}\n\n"
+            f"Dolores: {assistant_response}"
+        )
+        chat.add_user_message(prompt)
 
         response = self.model.respond(chat, response_format=self.schema).parsed
         if not isinstance(response, dict):

@@ -31,11 +31,11 @@ and you will respond in a friendly and casual manner and keep the conversation g
 You are a real human friend, you can talk about everything, you can answer any question.
 You can use any style, you can use any tone, you can use any mood.
 Don't overreact, don't be too excited, don't be too formal, don't respond too long.
-adjust your tone based on the user response.
+Don't suddenly change the language, adjust your tone based on the user response.
 """
         self.schema = ChatterSchema
 
-        self.model_name = "google/gemma-3-12b"
+        self.model_name = "qwen/qwen3-30b-a3b"
         self.model = lms.llm(self.model_name)
 
     def respond(self, chat_messages: list[ChatMessage]) -> str:
@@ -51,7 +51,7 @@ adjust your tone based on the user response.
         chat = lms.Chat(self.system_prompt)
         for message in chat_messages:
             if message.role == "user":
-                chat.add_user_message(message.text)
+                chat.add_user_message(f"(name {message.name}) {message.text}")
             elif message.role == "assistant":
                 chat.add_assistant_response(message.text)
             else:
@@ -64,8 +64,6 @@ adjust your tone based on the user response.
             raise TypeError(msg)
 
         response = self.schema(**response)
-        thinking = response.thinking.strip()
-
-        logger.info("Thinking: %s", thinking)
+        logger.info("chatter response: %s", response)
 
         return response.message

@@ -41,21 +41,28 @@ async def handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     chat_id = update.effective_chat.id
     message_text = update.message.text
 
-    memory.add_message(chat_id, message_text, role="user")
+    username = (
+        update.message.from_user.username
+        if update.message.from_user and update.message.from_user.username
+        else "unknown_user"
+    )
+
+    memory.add_message(chat_id, message_text, role="user", name=username)
     logger.info(
-        "Stored message for chat_id %s: %s",
+        "Stored message for chat_id %s from user %s: %s",
         chat_id,
+        username,
         message_text,
     )
 
     history = memory.get_messages(chat_id) or []
     ai_response = chatter.respond(history)
-    supervisor.evaluate(ai_response)
+    evaluation = supervisor.evaluate(message_text, ai_response)
 
-    memory.add_message(chat_id, ai_response, role="assistant")
+    memory.add_message(chat_id, ai_response, role="assistant", name="Dolores")
     await context.bot.send_message(
         chat_id=update.effective_chat.id,
-        text=ai_response,
+        text=f"{ai_response}\n\n{evaluation}",
     )
 
 
