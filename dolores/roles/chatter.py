@@ -11,7 +11,7 @@ class ChatterSchema(BaseModel):
     """Schema for Chatter role."""
 
     thinking: str
-    message_to_user: str
+    new_response_to_user: str
 
 
 class Chatter:
@@ -32,6 +32,9 @@ Don't suddenly change the language, adjust your tone based on the user response.
 
 Your responses will be evaluated by a supervisor, you need to modify your responses
 if your response didn't pass the evaluation.
+
+System information will be in brackets, you can refer to it in your responses,
+but don't mention it explicitly.
 """
         self.schema = ChatterSchema
 
@@ -57,7 +60,7 @@ if your response didn't pass the evaluation.
         conversation_text = "This is a conversation between Dolores and the user.\n\n"
         for message in chat_messages:
             if message.role == "user":
-                conversation_text += f"User (name {message.name}): {message.text}\n"
+                conversation_text += f"User [name {message.name}]: {message.text}\n"
             elif message.role == "assistant":
                 conversation_text += f"Dolores: {message.text}\n"
             else:
@@ -66,8 +69,8 @@ if your response didn't pass the evaluation.
 
         if evaluation:
             conversation_text += (
-                f"The response did not pass the evaluation: {evaluation}\n"
-                f"Please modify your response accordingly."
+                f"[The response did not pass the evaluation: {evaluation}, "
+                f"please modify your response accordingly.]"
             )
 
         response = self.model.response(
@@ -78,4 +81,4 @@ if your response didn't pass the evaluation.
         if not isinstance(response, ChatterSchema):
             msg = f"Expected response to be a ChatterSchema, got {type(response)}"
             raise TypeError(msg)
-        return response.message_to_user
+        return response.new_response_to_user
