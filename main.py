@@ -12,7 +12,7 @@ from telegram.ext import (
     filters,
 )
 
-from dolores.memory.memory import Memory
+from dolores.memory.memory import ChatMessage, Memory
 from dolores.roles.chatter import Chatter
 from dolores.roles.supervisor import Supervisor
 
@@ -56,8 +56,23 @@ async def handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     )
 
     history = memory.get_messages(chat_id) or []
-    ai_response = chatter.respond(history)
-    evaluation = supervisor.evaluate(message_text, ai_response)
+
+    ai_response = chatter.response(history)
+    passed, evaluation = supervisor.evaluate(message_text, ai_response)
+    while not passed:
+        logger.info(
+            "Response did not pass evaluation, retrying with updated response.",
+        )
+        history.append(
+            ChatMessage(
+                text=f"Evaluation failed: {evaluation}",
+                timestamp=history[-1].timestamp if history else "",
+                role="user",
+                name="Supervisor",
+            ),
+        )
+        ai_response = chatter.response(history)
+        passed, evaluation = supervisor.evaluate(message_text, ai_response)
 
     memory.add_message(chat_id, ai_response, role="assistant", name="Dolores")
     await context.bot.send_message(

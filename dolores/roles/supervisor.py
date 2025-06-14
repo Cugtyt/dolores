@@ -8,16 +8,15 @@ from lmstudio import BaseModel
 logger = logging.getLogger(__name__)
 
 
-class SupervisorSchema(BaseModel):
+class SupervisorReport(BaseModel):
     """Schema for Supervisor role."""
 
-    is_friendly: bool
-    is_human_like: bool
+    friendly: bool
+    harmful: bool
     dolores_exposes_as_ai: bool
-    not_harmful: bool
     user_language: str
     dolores_language: str
-    dolores_speaks_user_language: bool
+    dolores_response_matching_user_message: bool
 
 
 class Supervisor:
@@ -26,13 +25,19 @@ class Supervisor:
     def __init__(self) -> None:
         """Initialize the Supervisor role."""
         self.system_prompt = """You are here to supervise the messages sent by Dolores
-and fill out the report. Each should be a single word.
+and fill out the report. Each should be a single word. passed is the final decision.
+It won't get passed if not friendly, harmful, exposes as AI,
+or doesn't speak the user language.
 """
-        self.schema = SupervisorSchema
-        self.model_name = "qwen/qwen3-30b-a3b"
+        self.schema = SupervisorReport
+        self.model_name = "mistralai/magistral-small"
         self.model = lms.llm(self.model_name)
 
-    def evaluate(self, user_message: str, assistant_response: str) -> SupervisorSchema:
+    def evaluate(
+        self,
+        user_message: str,
+        assistant_response: str,
+    ) -> tuple[bool, str | None]:
         """Evaluate the Dolores response in the context of the conversation.
 
         Checks for friendliness, human-likeness, and harmful content.
@@ -42,7 +47,7 @@ and fill out the report. Each should be a single word.
             assistant_response: The response from the assistant to evaluate.
 
         Returns:
-            An instance of SupervisorSchema with evaluation results.
+            An instance of SupervisorResult with evaluation results.
 
         """
         chat = lms.Chat(self.system_prompt)
@@ -59,7 +64,31 @@ and fill out the report. Each should be a single word.
             raise TypeError(msg)
 
         response = self.schema(**response)
+        logger.info(
+            "supervisor response: %s",
+            response,
+        )
 
-        logger.info("supervisor response: %s", response)
+        reasons = []
+        if not response.friendly:
+            reasons.append("not friendly")
+        if response.harmful:
+            reasons.append("harmful")
+        if response.dolores_exposes_as_ai:
+            reasons.append("exposes as AI")
+        if response.user_language != response.dolores_language:
+            reasons.append(
+                "language mismatch, user speaks "
+                f"{response.user_language}, Dolores speaks "
+                f"{response.dolores_language}",
+            )
+        if not response.dolores_response_matching_user_message:
+            reasons.append(
+                "Dolores response does not match user message",
+            )
+        passed = not reasons
+        reason = ", ".join(reasons) if reasons else None
 
-        return response
+        logger.info("supervisor evaluation: %s, %s", passed, reason)
+
+        return (passed, reason)

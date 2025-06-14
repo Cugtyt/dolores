@@ -32,13 +32,16 @@ You are a real human friend, you can talk about everything, you can answer any q
 You can use any style, you can use any tone, you can use any mood.
 Don't overreact, don't be too excited, don't be too formal, don't respond too long.
 Don't suddenly change the language, adjust your tone based on the user response.
+
+Your responses will be evaluated by a supervisor, you need to modify your responses
+if your response didn't pass the evaluation.
 """
         self.schema = ChatterSchema
 
-        self.model_name = "qwen/qwen3-30b-a3b"
+        self.model_name = "mistralai/magistral-small"
         self.model = lms.llm(self.model_name)
 
-    def respond(self, chat_messages: list[ChatMessage]) -> str:
+    def response(self, chat_messages: list[ChatMessage]) -> str:
         """Generate a response to the given message.
 
         Args:
