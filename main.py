@@ -71,7 +71,19 @@ async def handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
                 name="Supervisor",
             ),
         )
-        ai_response = chatter.response(history)
+        ai_response = chatter.response(
+            [
+                *history,
+                ChatMessage(
+                    text=f"Evaluation failed: {
+                        evaluation
+                    }, please modify your response accordingly.",
+                    timestamp=history[-1].timestamp if history else "",
+                    role="user",
+                    name="Supervisor",
+                ),
+            ],
+        )
         passed, evaluation = supervisor.evaluate(message_text, ai_response)
 
     memory.add_message(chat_id, ai_response, role="assistant", name="Dolores")

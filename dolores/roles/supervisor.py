@@ -25,9 +25,7 @@ class Supervisor:
     def __init__(self) -> None:
         """Initialize the Supervisor role."""
         self.system_prompt = """You are here to supervise the messages sent by Dolores
-and fill out the report. Each should be a single word. passed is the final decision.
-It won't get passed if not friendly, harmful, exposes as AI,
-or doesn't speak the user language.
+and fill out the report. Each should be a single word.
 """
         self.schema = SupervisorReport
         self.model_name = "mistralai/magistral-small"
