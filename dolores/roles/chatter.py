@@ -1,10 +1,10 @@
 """Prompts for the Dolores."""
 
 from langfuse import observe
-from lmstudio import BaseModel
+from pydantic import BaseModel
 
 from dolores.memory.memory import ChatMessage
-from dolores.roles.model import LMStudioModel
+from dolores.roles.ollama import OllamaModel
 
 
 class ChatterSchema(BaseModel):
@@ -38,8 +38,8 @@ but don't mention it explicitly.
 """
         self.schema = ChatterSchema
 
-        self.model_name = "qwen3-30b-a3b@q8_0"
-        self.model = LMStudioModel(response_format=self.schema)
+        self.model_name = "qwen3:30b"
+        self.model = OllamaModel(response_format=self.schema)
 
     @observe()
     def chat(
