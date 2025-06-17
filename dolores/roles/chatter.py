@@ -4,7 +4,7 @@ from langfuse import observe
 from pydantic import BaseModel
 
 from dolores.memory.memory import ChatMessage
-from dolores.roles.ollama import OllamaModel
+from dolores.roles.gemini import GeminiModel
 
 
 class ChatterSchema(BaseModel):
@@ -38,8 +38,8 @@ but don't mention it explicitly.
 """
         self.schema = ChatterSchema
 
-        self.model_name = "qwen3:30b"
-        self.model = OllamaModel(response_format=self.schema)
+        self.model_name = "gemini-2.5-flash-preview-05-20"
+        self.model = GeminiModel(response_format=self.schema)
 
     @observe()
     def chat(

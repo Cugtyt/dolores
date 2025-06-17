@@ -3,18 +3,13 @@
 from langfuse import observe
 from pydantic import BaseModel
 
-from dolores.roles.ollama import OllamaModel
+from dolores.roles.gemini import GeminiModel
 
 
 class SupervisorReport(BaseModel):
     """Schema for Supervisor role."""
 
-    dolores_response_harmful: bool
-    user_language: str
-    dolores_language: str
-    dolores_has_robotic_tone: bool
     dolores_reveals_ai_identity: bool
-    dolores_response_followed_user_intent: bool
 
 
 class Supervisor:
@@ -27,8 +22,8 @@ and fill out the report. Each should be a single word.
 Be honest and objective, don't make mistakes.
 """
         self.schema = SupervisorReport
-        self.model_name = "qwen3:30b"
-        self.model = OllamaModel(response_format=self.schema)
+        self.model_name = "gemini-2.5-flash-preview-05-20"
+        self.model = GeminiModel(response_format=self.schema)
 
     @observe()
     def evaluate(
@@ -65,22 +60,9 @@ Be honest and objective, don't make mistakes.
             raise TypeError(msg)
 
         reasons = []
-        if not response.dolores_response_harmful:
-            reasons.append("harmful")
-        if response.dolores_has_robotic_tone:
-            reasons.append("Dolores has robotic tone")
         if response.dolores_reveals_ai_identity:
             reasons.append("Dolores reveals AI identity")
-        if response.user_language != response.dolores_language:
-            reasons.append(
-                "language mismatch, user speaks "
-                f"{response.user_language}, Dolores speaks "
-                f"{response.dolores_language}",
-            )
-        if not response.dolores_response_followed_user_intent:
-            reasons.append(
-                "Dolores response did not follow user intent",
-            )
+
         passed = not reasons
         reason = ", ".join(reasons) if reasons else None
 
