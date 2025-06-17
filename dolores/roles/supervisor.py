@@ -26,7 +26,7 @@ Be honest and objective, don't make mistakes.
         self.model = GeminiModel(response_format=self.schema)
 
     @observe()
-    def evaluate(
+    async def evaluate(
         self,
         user_message: str,
         assistant_response: str,
@@ -49,7 +49,7 @@ Be honest and objective, don't make mistakes.
             f"Dolores: {assistant_response}"
         )
 
-        response = self.model.response(
+        response = await self.model.response(
             self.model_name,
             self.system_prompt,
             context,

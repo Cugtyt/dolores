@@ -18,7 +18,7 @@ class GeminiModel:
         self.response_format = response_format
 
     @observe()
-    def response(
+    async def response(
         self,
         model_name: str,
         system_prompt: str,

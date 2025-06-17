@@ -42,7 +42,7 @@ but don't mention it explicitly.
         self.model = GeminiModel(response_format=self.schema)
 
     @observe()
-    def chat(
+    async def chat(
         self,
         chat_messages: list[ChatMessage],
         evaluation: str | None = None,
@@ -73,7 +73,7 @@ but don't mention it explicitly.
                 f"please modify your response accordingly.]"
             )
 
-        response = self.model.response(
+        response = await self.model.response(
             self.model_name,
             self.system_prompt,
             conversation_text.strip(),
