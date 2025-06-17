@@ -12,7 +12,7 @@ from telegram.ext import (
     filters,
 )
 
-from dolores.memory.memory import ChatMessage, Memory
+from dolores.memory.dict_memory import ChatMessage, DictMemory
 from dolores.roles.chatter import Chatter
 from dolores.roles.supervisor import Supervisor
 
@@ -24,7 +24,7 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-memory = Memory()
+memory = DictMemory()
 chatter = Chatter()
 supervisor = Supervisor()
 

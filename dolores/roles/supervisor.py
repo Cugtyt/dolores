@@ -3,7 +3,7 @@
 from langfuse import observe
 from pydantic import BaseModel
 
-from dolores.roles.gemini import GeminiModel
+from dolores.model.gemini import GeminiModel
 
 
 class SupervisorReport(BaseModel):

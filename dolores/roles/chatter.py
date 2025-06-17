@@ -3,8 +3,8 @@
 from langfuse import observe
 from pydantic import BaseModel
 
-from dolores.memory.memory import ChatMessage
-from dolores.roles.gemini import GeminiModel
+from dolores.memory.dict_memory import ChatMessage
+from dolores.model.gemini import GeminiModel
 
 
 class ChatterSchema(BaseModel):

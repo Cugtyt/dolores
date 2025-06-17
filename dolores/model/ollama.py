@@ -39,9 +39,9 @@ class OllamaModel:
             format=self.response_format.model_json_schema(),
         )
         if not isinstance(response.message.content, str):
-            msg = (
-                f"Expected response to be a string, got {type(response.message.content)}"
-            )
+            msg = f"Expected response to be a string, got {
+                type(response.message.content)
+            }"
             raise TypeError(msg)
 
         return self.response_format.model_validate_json(response.message.content)
